@@ -8,7 +8,7 @@
 		<version>2.6.7</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>cl.ufro.dci</groupId>
+	<groupId>cl.tomas.naivepay</groupId>
 	<artifactId>naivepay-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>naivepay-api</name>
