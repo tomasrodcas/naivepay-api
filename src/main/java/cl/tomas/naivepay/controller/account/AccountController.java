@@ -1,6 +1,7 @@
 package cl.tomas.naivepay.controller.account;
 
-import cl.tomas.naivepay.domain.Account;
+import cl.tomas.naivepay.domain.entities.AccountEntity;
+import cl.tomas.naivepay.infrastructure.models.Account;
 import cl.tomas.naivepay.service.account.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/accounts")
@@ -17,24 +19,31 @@ public class AccountController {
     AccountService service;
 
     @GetMapping(value = "/get", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Account>> getAccounts() {
-        return ResponseEntity.status(200).body(service.getAccounts());
+    public ResponseEntity<List<AccountEntity>> getAccounts() {
+        return ResponseEntity.status(200).body(service.getAccounts()
+                .stream().map(Account::toEntity)
+                .collect(Collectors.toList()));
     }
 
     @GetMapping(value = "/get/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Account> getAccountById(@PathVariable long id) {
-        return ResponseEntity.status(200).body(service.getAccountById(id));
+    public ResponseEntity<AccountEntity> getAccountById(@PathVariable long id) {
+        return ResponseEntity.status(200).body(service.getAccountById(id).toEntity());
 
+    }
+
+    @GetMapping("/get-by-num/{accNum}")
+    public ResponseEntity<AccountEntity> getAccountByNum(@PathVariable int accNum){
+        return ResponseEntity.status(200).body(service.getByAccNum(accNum).toEntity());
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Account> updateAccount(@RequestBody Account account) {
-        return ResponseEntity.status(200).body(service.updateAccount(account));
+    public ResponseEntity<AccountEntity> updateAccount(@RequestBody AccountEntity account) {
+        return ResponseEntity.status(200).body(service.updateAccount(account).toEntity());
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Account> createAccount(@RequestBody Account account) {
-        return ResponseEntity.status(200).body(service.createAccount(account));
+    public ResponseEntity<AccountEntity> createAccount(@RequestBody AccountEntity account) {
+        return ResponseEntity.status(200).body(service.createAccount(account).toEntity());
     }
 
     @DeleteMapping("/delete/{id}")
@@ -43,8 +52,9 @@ public class AccountController {
     }
 
     @GetMapping("/get-by-customer/{id}")
-    public ResponseEntity<List<Account>> getAccountsByCustomer(@PathVariable long id){
-        return ResponseEntity.status(200).body(service.getByCustomer(id));
+    public ResponseEntity<List<AccountEntity>> getAccountsByCustomer(@PathVariable long id){
+        return ResponseEntity.status(200).body(service.getByCustomer(id).stream().map(Account::toEntity).
+                collect(Collectors.toList()));
     }
 
 }

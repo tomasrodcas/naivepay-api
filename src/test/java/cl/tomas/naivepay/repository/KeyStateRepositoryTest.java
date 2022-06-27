@@ -1,6 +1,7 @@
 package cl.tomas.naivepay.repository;
 
-import cl.tomas.naivepay.domain.KeyState;
+import cl.tomas.naivepay.infrastructure.models.KeyState;
+import cl.tomas.naivepay.infrastructure.repository.KeyStateRepository;
 import cl.tomas.naivepay.repository.util.UtilTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;

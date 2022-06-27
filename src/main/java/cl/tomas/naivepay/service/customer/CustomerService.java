@@ -1,14 +1,16 @@
 package cl.tomas.naivepay.service.customer;
 
-import cl.tomas.naivepay.exceptions.ApiForbiddenException;
-import cl.tomas.naivepay.exceptions.ApiRequestException;
-import cl.tomas.naivepay.repository.CustomerRepository;
-import cl.tomas.naivepay.domain.Customer;
+import cl.tomas.naivepay.domain.entities.CustomerEntity;
+import cl.tomas.naivepay.domain.exceptions.ApiForbiddenException;
+import cl.tomas.naivepay.domain.exceptions.ApiRequestException;
+import cl.tomas.naivepay.infrastructure.models.Access;
+import cl.tomas.naivepay.infrastructure.repository.CustomerRepository;
+import cl.tomas.naivepay.infrastructure.models.Customer;
 
+import cl.tomas.naivepay.service.access.AccessService;
 import cl.tomas.naivepay.service.auth.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,11 +26,8 @@ public class CustomerService {
     CustomerRepository repository;
 
     @Autowired
-    PasswordEncoder passwordEncoder;
+    AccessService accessService;
 
-    public CustomerService(CustomerRepository customerRepository) {
-        this.repository = customerRepository;
-    }
 
     public List<Customer> getCustomers() {
         log.info("Fetching all customers");
@@ -40,10 +39,11 @@ public class CustomerService {
         }
     }
 
-    public Customer getCustomerById(long id) {
+    public Customer getById(long id) {
         log.info("Fetching Customer With ID: {}", id);
         try {
-            authService.checkResourceOwnership(id);
+            authService.checkResourceOwnership(id,
+                    "Can't Access Customer Info without Ownership or Permissions");
             return repository.findById(id).orElseThrow();
         } catch (NoSuchElementException e) {
             log.error("No Customer With ID: " + id + " Found!");
@@ -58,9 +58,13 @@ public class CustomerService {
         }
     }
 
-    public Customer createCustomer(Customer customer) {
+    public Customer createCustomer(CustomerEntity customerEntity) {
         log.info("Creating New Customer!");
         try {
+            Customer customer = new Customer();
+            Access access = accessService.create(customerEntity.getCusAccess());
+            customer.setCusAccess(access);
+            buildFromEntity(customer, customerEntity);
             return repository.save(customer);
         } catch (Exception e) {
             log.error("Error Creating New Customer {}", e.toString());
@@ -69,20 +73,24 @@ public class CustomerService {
 
     }
 
-    public Customer updateCustomer(Customer customer) {
-        log.info("Updating Customer With ID: {}", customer.getCusId());
+    public CustomerEntity updateCustomer(CustomerEntity customerEntity) {
+        log.info("Updating Customer With ID: {}", customerEntity.getCusId());
         try {
-            Customer customerStored = repository.findById(customer.getCusId()).orElseThrow();
-            authService.checkResourceOwnership(customerStored.getCusId());
-            return repository.save(customer);
+            Customer customerStored = repository.findById(customerEntity.getCusId()).orElseThrow();
+            authService.checkResourceOwnership(customerStored.getCusId(),
+                    "Can't Update Customer Info without Ownership or Permissions");
+            buildFromEntity(customerStored, customerEntity);
+
+            return repository.save(customerStored).toEntity();
+
         } catch (NoSuchElementException e) {
-            log.error("No Customer With ID: " + customer.getCusId() + " Found!");
-            throw new ApiRequestException("No Customer With ID: " + customer.getCusId() + " Found!");
+            log.error("No Customer With ID: " + customerEntity.getCusId() + " Found!");
+            throw new ApiRequestException("No Customer With ID: " + customerEntity.getCusId() + " Found!");
         } catch (ApiForbiddenException e) {
             log.error(e.getMessage());
             throw new ApiForbiddenException(e.getMessage());
         } catch (Exception e) {
-            log.error("Error Updating Customer With ID: " + customer.getCusId() + " " + e.toString());
+            log.error("Error Updating Customer With ID: " + customerEntity.getCusId() + " " + e.toString());
             throw new ApiRequestException("Error Updating Customer!");
         }
     }
@@ -100,6 +108,16 @@ public class CustomerService {
             log.error("Error Deleting Customer With ID: " + id + " " + e.toString());
             throw new ApiRequestException("Error Deleting Customer!");
         }
+    }
+
+    private void buildFromEntity(Customer customer, CustomerEntity customerEntity){
+        customer.setCusName(customerEntity.getCusName());
+        customer.setCusAddress(customerEntity.getCusAddress());
+        customer.setCusMail(customerEntity.getCusMail());
+        customer.setCusBirthDate(customerEntity.getCusBirthDate());
+        customer.setCusRut(customerEntity.getCusRut());
+        customer.setCusDevice(customerEntity.getCusDevice());
+        customer.setCusDv(customerEntity.getCusDv());
     }
 
 }

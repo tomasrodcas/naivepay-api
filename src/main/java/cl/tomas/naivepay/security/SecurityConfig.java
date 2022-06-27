@@ -17,6 +17,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import cl.tomas.naivepay.service.access.AccessService;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
@@ -48,6 +50,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.exceptionHandling().accessDeniedHandler(accessDeniedHandler());
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.authorizeRequests().antMatchers("/auth/login").permitAll();
+        http.authorizeRequests().antMatchers("/customers/confirm-email/**").permitAll();
+        http.authorizeRequests().antMatchers("/customers/register").permitAll();
         http.authorizeRequests().antMatchers("/auth/refresh-token").permitAll();
         http.authorizeRequests().antMatchers("/customers/get/{\\d+}").authenticated();
         http.authorizeRequests().antMatchers("/customers/update").authenticated();
@@ -73,5 +77,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .ignoring()
                 .antMatchers("/h2/**");
     }
+
 
 }

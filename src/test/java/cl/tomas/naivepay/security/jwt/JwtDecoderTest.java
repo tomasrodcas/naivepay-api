@@ -1,6 +1,6 @@
 package cl.tomas.naivepay.security.jwt;
 
-import cl.tomas.naivepay.domain.Access;
+import cl.tomas.naivepay.infrastructure.models.Access;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;

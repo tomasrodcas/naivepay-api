@@ -4,7 +4,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import cl.tomas.naivepay.domain.Access;
+import cl.tomas.naivepay.infrastructure.models.Access;
 
 @Component
 public class AuthenticationFacade implements IAuthenticationFacade {

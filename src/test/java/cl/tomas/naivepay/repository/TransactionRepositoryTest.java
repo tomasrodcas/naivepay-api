@@ -1,8 +1,11 @@
 package cl.tomas.naivepay.repository;
 
-import cl.tomas.naivepay.domain.Account;
-import cl.tomas.naivepay.domain.Transaction;
-import cl.tomas.naivepay.domain.TransactionState;
+import cl.tomas.naivepay.infrastructure.models.Account;
+import cl.tomas.naivepay.infrastructure.models.Transaction;
+import cl.tomas.naivepay.infrastructure.models.TransactionState;
+import cl.tomas.naivepay.infrastructure.repository.AccountRepository;
+import cl.tomas.naivepay.infrastructure.repository.TransactionRepository;
+import cl.tomas.naivepay.infrastructure.repository.TransactionStateRepository;
 import cl.tomas.naivepay.repository.util.UtilTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;

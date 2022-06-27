@@ -1,23 +1,28 @@
 package cl.tomas.naivepay.service.transaction;
 
-import cl.tomas.naivepay.exceptions.ApiRequestException;
-import cl.tomas.naivepay.repository.AccountRepository;
-import cl.tomas.naivepay.repository.TransactionRepository;
-import cl.tomas.naivepay.repository.TransactionStateRepository;
-import cl.tomas.naivepay.domain.Account;
-import cl.tomas.naivepay.domain.Transaction;
-import cl.tomas.naivepay.domain.TransactionState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import cl.tomas.naivepay.domain.entities.Deposit;
+import cl.tomas.naivepay.domain.entities.TransactionEntity;
+import cl.tomas.naivepay.domain.exceptions.ApiRequestException;
+import cl.tomas.naivepay.infrastructure.repository.AccountRepository;
+import cl.tomas.naivepay.infrastructure.repository.TransactionRepository;
+import cl.tomas.naivepay.infrastructure.repository.TransactionStateRepository;
+import cl.tomas.naivepay.infrastructure.models.Account;
+import cl.tomas.naivepay.infrastructure.models.Transaction;
+import cl.tomas.naivepay.infrastructure.models.TransactionState;
+import cl.tomas.naivepay.service.account.AccountService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class TransactionService {
-    Logger logger = LoggerFactory.getLogger(TransactionService.class);
     @Autowired
     AccountRepository accountRepository;
 
@@ -25,115 +30,128 @@ public class TransactionService {
     TransactionRepository transactionRepository;
 
     @Autowired
+    AccountService accountService;
+
+    @Autowired
     TransactionStateRepository transactionStateRepository;
 
-    public void setAccountRepository(AccountRepository newAccountRepository) {
-        accountRepository = newAccountRepository;
-    }
-
-    public void setTransactionRepository(TransactionRepository newTransactionRepository) {
-        transactionRepository = newTransactionRepository;
-    }
-
-    public void setTransactionStateRepository(TransactionStateRepository newTransactionStateRepository) {
-        transactionStateRepository = newTransactionStateRepository;
-    }
-
-    public Account increaseAmount(Account account) {
-        if (account.getAccId() != null) {
-            var acc = accountRepository.findById(account.getAccId()).
-                    orElseThrow(() -> new ApiRequestException("Account not exist"));
-            acc.setAccAmount(acc.getAccAmount() + 10000);
-
-            var transaction = new Transaction();
-            transaction.setTraAmount(10000);
-            transaction.setTraDescription("Increase amount");
-            transaction.setTraDestinationAccount(String.valueOf(account.getAccId()));
-            transactionRepository.save(transaction);
-            return accountRepository.save(acc);
-        } else {
-            throw new ApiRequestException("Invalid data");
-        }
-    }
-
-    public List<Transaction> transactionsPendingApproval(Account account) {
-        if (account.getAccId() != null) {
-            return transactionRepository.findAllByTraOriginAccount(String.valueOf(account.getAccId()))
-                    .orElseThrow(() -> new ApiRequestException("Account not exist"))
-                    .stream().filter(t -> t.getTraTransactionState().getTrsName().equals("Unpaid")).collect(Collectors.toList());
-        } else {
-            throw new ApiRequestException("Invalid data");
-        }
-    }
-
-    public Transaction transferAmount( Transaction transaction) {
-        TransactionState transactionState = transactionStateRepository.findById(transaction.getTraTransactionState().getTrsId())
-                .orElseThrow(() -> new ApiRequestException("Id of transaction state not found"));
-        if (transactionState.getTrsName().equals("Paid")) {
-            throw new ApiRequestException("Transaction has already been completed");
-        }
-        if ((transaction.getTraOriginAccount() == null) || (transaction.getTraDestinationAccount() == null) || (transactionState.getTrsName() == null)) {
-            throw new ApiRequestException("Insufficient data");
-        }
-        if (transaction.getTraOriginAccount().equals(transaction.getTraDestinationAccount())) {
-            throw new ApiRequestException("Accounts must be different");
-        }
-        Account accOrigin = accountRepository.findById(Long.valueOf(transaction.getTraOriginAccount())).
-                orElseThrow(() -> new ApiRequestException("Origin account not exist: " + transaction.getTraOriginAccount()));
-        Account accDestination = accountRepository.findById(Long.valueOf(transaction.getTraDestinationAccount())).
-                orElseThrow(() -> new ApiRequestException("Destination account not exist: " + transaction.getTraDestinationAccount()));
-        if (transaction.getTraAmount() > 0) {
-            if (accOrigin.getAccAmount() < transaction.getTraAmount()) {
-                throw new ApiRequestException("Amount of origin account is insufficient");
-            } else {
-                var tra = new Transaction();
-                tra.setTraAmount(transaction.getTraAmount());
-                tra.setTraDescription(transaction.getTraDescription());
-                tra.setTraOriginAccount(transaction.getTraOriginAccount());
-                tra.setTraDestinationAccount(transaction.getTraDestinationAccount());
-
-                transactionState.setTrsName("Paid");
-
-                tra.setTraTransactionState(transactionState);
-
-                accOrigin.setAccAmount(accOrigin.getAccAmount() - transaction.getTraAmount());
-                accDestination.setAccAmount(accDestination.getAccAmount() + transaction.getTraAmount());
-
-                accountRepository.save(accOrigin);
-                accountRepository.save(accDestination);
-                transactionRepository.save(transaction);
-                return transaction;
+    public TransactionEntity deposit(Deposit deposit) {
+            log.info("Depositing {} to account {}",deposit.getAmount() ,deposit.getAccId());
+            if(deposit.getAmount() <= 0){
+                throw new ApiRequestException("Can't deposit 0 or less money to the account");
             }
-        } else {
-            throw new ApiRequestException("Amount not valid");
+            Account account = accountService.getAccountById(deposit.getAccId());
+            account.setAccAmount(account.getAccAmount()+ deposit.getAmount());
+
+            try{
+
+                account = accountService.updateAccount(account.toEntity());
+                Transaction transaction = new Transaction();
+                transaction.setTraAccount(account);
+                transaction.setTraDestinationAccount(account);
+                transaction.setTraAmount(deposit.getAmount());
+                transaction.setTraDescription("Deposit");
+                return transactionRepository.save(transaction).toEntity();
+
+            } catch(Exception e){
+                log.error("Error Making Deposit | {}", e.getMessage());
+                throw new ApiRequestException("Error Making Deposit");
+            }
+    }
+
+    public TransactionEntity makeTransaction(TransactionEntity transactionEntity) {
+        this.validateTransactionData(transactionEntity);
+
+        Account originAcc = accountService.getByAccNum(transactionEntity.getTraOriginAccountNum());
+        Account destinationAcc = accountService.getByAccNum(transactionEntity.getTraDestinationAccountNum());
+
+        try{
+            Transaction transaction = new Transaction();
+            transaction.setTraAmount(transactionEntity.getTraAmount());
+            transaction.setTraDescription(transactionEntity.getTraDescription());
+            transaction.setTraDestinationAccount(destinationAcc);
+            transaction.setTraAccount(originAcc);
+            transaction.setTraDate(new Date(System.currentTimeMillis()));
+
+            TransactionState state = new TransactionState();
+            state.setTrsName(transactionEntity.getTraState());
+
+            transaction.setTraTransactionState(state);
+
+            originAcc.setAccAmount(originAcc.getAccAmount() - transaction.getTraAmount());
+            destinationAcc.setAccAmount(destinationAcc.getAccAmount() + transaction.getTraAmount());
+
+            accountService.updateAccount(originAcc.toEntity());
+            accountService.updateAccount(destinationAcc.toEntity());
+            return transactionRepository.save(transaction).toEntity();
+
+        }catch(Exception e){
+            log.error("Error Making Transaction! | {}", e.getMessage());
+            throw new ApiRequestException("Error Making Transaction!");
+        }
+
+    }
+
+    public List<TransactionEntity> getRecentTransactions(long accId){
+        Account account = accountService.getAccountById(accId);
+        try{
+            List<Transaction> transactions = transactionRepository.findFirst10ByTraAccountOrderByTraDate(account);
+            return transactions.stream().map(Transaction::toEntity).collect(Collectors.toList());
+        }catch(Exception e){
+            log.error("Error Fetching Recent Transactions for Acc {}", accId);
+            throw new ApiRequestException("Error Fetching Recent Transactions");
         }
     }
 
-    public Account seeStatus(Account account) {
-        if (account.getAccId() != null) {
-            return accountRepository.findById(account.getAccId()).
-                    orElseThrow(() -> new ApiRequestException("Account not exist"));
-        } else {
-            throw new ApiRequestException("Invalid data");
+    public List<TransactionEntity> getByAccount(long accId){
+        Account account = accountService.getAccountById(accId);
+        try{
+            List<Transaction> transactions = (List<Transaction>) transactionRepository.findTransactionsByTraAccount(account);
+            return transactions.stream().map(Transaction::toEntity).collect(Collectors.toList());
+        }catch(Exception e){
+            log.error("Error Fetching Transactions | {}", e.getMessage());
+            throw new ApiRequestException("Error Fetching Transactions");
         }
     }
 
-    public List<Transaction> incomes(Account account) {
-        if (account.getAccId() != null) {
-            return transactionRepository.findAllByTraDestinationAccount(String.valueOf(account.getAccId())).
-                    orElseThrow(() -> new ApiRequestException("Account not exist"));
-        } else {
-            throw new ApiRequestException("Invalid data");
+    public List<TransactionEntity> incomes(long accId) {
+        try{
+            Account account = accountService.getAccountById(accId);
+            List<Transaction> transactions = transactionRepository.findAllByTraDestinationAccount(account);
+            return transactions.stream().map(Transaction::toEntity).collect(Collectors.toList());
+        }catch(Exception e){
+            log.error("Error Fetching Expenses for Account {} | {}", accId, e.getMessage());
+            throw new ApiRequestException("Error Fetching Expenses");
         }
+
     }
 
 
-    public List<Transaction> expenses(Account account){
-        if (account.getAccId() != null) {
-            return transactionRepository.findAllByTraOriginAccount(String.valueOf(account.getAccId())).
-                    orElseThrow(() -> new ApiRequestException("Account not exist"));
-        } else {
-            throw new ApiRequestException("Invalid data");
+    public List<TransactionEntity> expenses(long accId){
+        try{
+            Account account = accountService.getAccountById(accId);
+            List<Transaction> transactions = transactionRepository.findTransactionsByTraAccount(account);
+            return transactions.stream().map(Transaction::toEntity).collect(Collectors.toList());
+        }catch(Exception e){
+            log.error("Error Fetching Expenses for Account {} | {}", accId, e.getMessage());
+            throw new ApiRequestException("Error Fetching Expenses");
         }
+
+    }
+
+    private void validateTransactionData(TransactionEntity transactionEntity){
+        if(transactionEntity.getTraAmount() <= 0){
+            throw new ApiRequestException("Can't Make a Transaction With 0 or less amount");
+        }
+
+        Account originAcc = accountService.getByAccNum(transactionEntity.getTraOriginAccountNum());
+        Account destinationAcc = accountService.getByAccNum(transactionEntity.getTraDestinationAccountNum());
+        if(Objects.equals(originAcc.getAccId(), destinationAcc.getAccId())){
+            throw new ApiRequestException("Origin and Destination Accounts Can't be the Same!");
+        }
+        if(originAcc.getAccAmount() < transactionEntity.getTraAmount()){
+            throw new ApiRequestException("Insufficient Funds!");
+        }
+
     }
 }

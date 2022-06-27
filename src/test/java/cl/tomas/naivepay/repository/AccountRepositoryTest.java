@@ -1,7 +1,9 @@
 package cl.tomas.naivepay.repository;
 
-import cl.tomas.naivepay.domain.Account;
-import cl.tomas.naivepay.domain.Customer;
+import cl.tomas.naivepay.infrastructure.models.Account;
+import cl.tomas.naivepay.infrastructure.models.Customer;
+import cl.tomas.naivepay.infrastructure.repository.AccountRepository;
+import cl.tomas.naivepay.infrastructure.repository.CustomerRepository;
 import cl.tomas.naivepay.repository.util.UtilTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;

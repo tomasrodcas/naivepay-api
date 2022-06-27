@@ -18,7 +18,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import cl.tomas.naivepay.domain.Access;
+import cl.tomas.naivepay.infrastructure.models.Access;
 import cl.tomas.naivepay.security.jwt.JwtDecoder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,12 +35,14 @@ public class AuthorizationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        if (request.getServletPath().equals("/auth/login") || request.getServletPath().equals("/auth/refresh-token")) {
+        String path = request.getServletPath();
+
+        if (path.equals("/auth/login") || path.equals("/auth/refresh-token")
+                || path.startsWith("/customers/confirm-email/") || path.equals("/customers/register")) {
             filterChain.doFilter(request, response);
             return;
         }
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        System.out.println(authorizationHeader);
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             log.error("Request Without Authorization");
 

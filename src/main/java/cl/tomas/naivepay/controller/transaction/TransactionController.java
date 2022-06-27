@@ -1,7 +1,8 @@
 package cl.tomas.naivepay.controller.transaction;
 
-import cl.tomas.naivepay.domain.Account;
-import cl.tomas.naivepay.domain.Transaction;
+import cl.tomas.naivepay.domain.entities.Deposit;
+import cl.tomas.naivepay.domain.entities.TransactionEntity;
+import cl.tomas.naivepay.infrastructure.models.Account;
 import cl.tomas.naivepay.service.transaction.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,28 +17,33 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @PutMapping("/increase-amount")
-    public ResponseEntity<Account> increaseAmount(@RequestBody Account account) {
-        return ResponseEntity.status(200).body(transactionService.increaseAmount(account));
+    @PutMapping("/deposit")
+    public ResponseEntity<TransactionEntity> deposit(@RequestBody Deposit deposit) {
+        return ResponseEntity.status(200).body(transactionService.deposit(deposit));
     }
 
-    @PutMapping("/transfer-amount")
-    public ResponseEntity<Transaction> transferAmount(@RequestBody Transaction transaction) {
-        return ResponseEntity.status(200).body(transactionService.transferAmount(transaction));
+    @PutMapping("/transfer")
+    public ResponseEntity<TransactionEntity> transfer(@RequestBody TransactionEntity transaction) {
+        return ResponseEntity.status(200).body(transactionService.makeTransaction(transaction));
     }
 
-    @GetMapping("/see-status")
-    public ResponseEntity<Account> seeStatus(@RequestBody Account account) {
-        return ResponseEntity.status(200).body(transactionService.seeStatus(account));
+    @GetMapping("/incomes/{accId}")
+    public ResponseEntity<List<TransactionEntity>> incomes(@PathVariable long accId) {
+        return ResponseEntity.status(200).body(transactionService.incomes(accId));
     }
 
-    @GetMapping("/incomes")
-    public ResponseEntity<List<Transaction>> incomes(@RequestBody Account account) {
-        return ResponseEntity.status(200).body(transactionService.incomes(account));
+    @GetMapping("/expenses/{accId}")
+    public ResponseEntity<List<TransactionEntity>> expenses(@PathVariable long accId) {
+        return ResponseEntity.status(200).body(transactionService.expenses(accId));
     }
 
-    @GetMapping("/expenses")
-    public ResponseEntity<List<Transaction>> expenses(@RequestBody Account account) {
-        return ResponseEntity.status(200).body(transactionService.expenses(account));
+    @GetMapping("/get-by-account/{accId}")
+    public ResponseEntity<List<TransactionEntity>> getByAccount(@PathVariable long accId){
+        return ResponseEntity.status(200).body(transactionService.getByAccount(accId));
+    }
+
+    @GetMapping("/get-recent/{accId}")
+    public ResponseEntity<List<TransactionEntity>> getRecent(@PathVariable long accId){
+        return ResponseEntity.status(200).body(transactionService.getRecentTransactions(accId));
     }
 }

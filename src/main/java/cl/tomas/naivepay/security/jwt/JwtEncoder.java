@@ -8,7 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 
-import cl.tomas.naivepay.domain.Access;
+import cl.tomas.naivepay.infrastructure.models.Access;
 
 public class JwtEncoder {
 

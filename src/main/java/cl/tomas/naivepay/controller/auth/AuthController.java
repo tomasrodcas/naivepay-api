@@ -1,26 +1,24 @@
 package cl.tomas.naivepay.controller.auth;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import cl.tomas.naivepay.exceptions.ApiRequestException;
-import cl.tomas.naivepay.domain.Customer;
+import cl.tomas.naivepay.domain.entities.LoginResponse;
+import cl.tomas.naivepay.infrastructure.models.AccessLog;
+import cl.tomas.naivepay.domain.exceptions.ApiRequestException;
+import cl.tomas.naivepay.service.accesslog.AccessLogService;
+import cl.tomas.naivepay.service.auth.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import cl.tomas.naivepay.domain.Access;
+import cl.tomas.naivepay.infrastructure.models.Access;
 import cl.tomas.naivepay.security.jwt.JwtDecoder;
 import cl.tomas.naivepay.security.jwt.JwtEncoder;
-import cl.tomas.naivepay.service.access.AccessService;
-import cl.tomas.naivepay.service.customer.CustomerService;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -28,70 +26,24 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthController {
 
-    @Value("${spring.jwt.secret}")
-    private String secret;
     @Autowired
-    AccessService accessService;
-
+    AuthService authService;
     @Autowired
-    CustomerService customerService;
-    @Autowired
-    AuthenticationManager authenticationManager;
+    AccessLogService accessLogService;
 
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> authenticateUser(HttpServletRequest request, HttpServletResponse response){
-        log.error("ALOOOO");
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username,
-                password);
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
-
-        Access access = (Access) authentication.getPrincipal();
-        Customer customer = accessService.getCustomerByAccessId(access.getAccId());
-        String issuer = request.getRequestURI();
-
-        JwtEncoder jwtEncoder = new JwtEncoder();
-
-        String token = jwtEncoder.encodeToken(access, issuer, new Date(System.currentTimeMillis() + 10 * 60 * 1000),
-                secret);
-        String refreshToken = jwtEncoder.encodeRefreshToken(access, issuer,
-                new Date(System.currentTimeMillis() + 30 * 60 * 1000), secret);
-
-        response.setHeader("access_token", token);
-        response.setHeader("refresh_token", refreshToken);
-        LoginResponse responsePayload = new LoginResponse(customer.getCusId(),customer.getCusName() , access.getAccRole(), token, refreshToken);
-        return ResponseEntity.status(200).body(responsePayload);
+        return ResponseEntity.status(200).body(authService.login(request));
     }
 
     @GetMapping("/refresh-token")
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) {
-        log.info("Refreshing Token");
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            throw new ApiRequestException("No Refresh Token Found");
-        }
-        try {
-            String token = authorizationHeader.substring("Bearer ".length());
-            Access decodedAccess = new JwtDecoder().decodeRefreshToken(token, secret);
+    public ResponseEntity<LoginResponse> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        return ResponseEntity.status(200).body(authService.refreshToken(request));
+    }
 
-            Access access = accessService.getWithPassword(decodedAccess.getAccId());
-            JwtEncoder jwtEncoder = new JwtEncoder();
-            String issuer = request.getRequestURL().toString();
-
-            String newToken = jwtEncoder.encodeToken(access, issuer,
-                    new Date(System.currentTimeMillis() + 10 * 60 * 1000), secret);
-
-            String newRefreshToken = jwtEncoder.encodeToken(access, issuer,
-                    new Date(System.currentTimeMillis() + 30 * 60 * 1000), secret);
-
-            response.setHeader("access_token", newToken);
-            response.setHeader("refresh_token", newRefreshToken);
-        } catch (Exception e) {
-            log.error("Error refreshing token: {}", e.getMessage());
-            response.setHeader("Error", e.getMessage());
-            throw new ApiRequestException("Authentication Error " + e.getCause());
-        }
+    @GetMapping("/get-all-access-logs")
+    public ResponseEntity<List<AccessLog>> getLogs(){
+        return ResponseEntity.status(200).body(accessLogService.getAll());
     }
 }
