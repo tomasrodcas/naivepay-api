@@ -8,7 +8,7 @@
 		<version>2.6.7</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>cl.ufro.dci</groupId>
+	<groupId>cl.tomas.naivepay</groupId>
 	<artifactId>naivepay-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>naivepay-api</name>
@@ -71,6 +71,10 @@
             <version>23.0.0</version>
             <scope>compile</scope>
         </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
     </dependencies>
 
 	<build>
