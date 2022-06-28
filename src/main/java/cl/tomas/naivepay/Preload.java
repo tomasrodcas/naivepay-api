@@ -66,8 +66,8 @@ public class Preload {
 
 			admin.setCusAccess(adminAccess);
 			customer.setCusAccess(customerAccess);
-			admin.setCusMail("tomasrodcas@gmail.com");
-			customer.setCusMail("t.rodriguez07@ufromail.cl");
+			admin.setCusEmail("tomasrodcas@gmail.com");
+			customer.setCusEmail("t.rodriguez07@ufromail.cl");
 			customerService.createCustomer(admin);
 			customerService.createCustomer(customer);
 

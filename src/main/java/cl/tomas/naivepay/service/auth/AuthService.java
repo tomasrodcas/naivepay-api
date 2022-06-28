@@ -21,7 +21,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -65,7 +64,7 @@ public class AuthService {
 
         JwtEncoder jwtEncoder = new JwtEncoder();
 
-        String token = jwtEncoder.encodeToken(access, issuer, new Date(System.currentTimeMillis() + 10 * 60 * 1000),
+        String token = jwtEncoder.encodeToken(access, customer, issuer, new Date(System.currentTimeMillis() + 10 * 60 * 1000),
                 secret);
         String refreshToken = jwtEncoder.encodeRefreshToken(access, issuer,
                 new Date(System.currentTimeMillis() + 30 * 60 * 1000), secret);
@@ -90,10 +89,10 @@ public class AuthService {
             JwtEncoder jwtEncoder = new JwtEncoder();
             String issuer = request.getRequestURL().toString();
 
-            String newToken = jwtEncoder.encodeToken(access, issuer,
+            String newToken = jwtEncoder.encodeToken(access,customer, issuer,
                     new Date(System.currentTimeMillis() + 10 * 60 * 1000), secret);
 
-            String newRefreshToken = jwtEncoder.encodeToken(access, issuer,
+            String newRefreshToken = jwtEncoder.encodeToken(access, customer, issuer,
                     new Date(System.currentTimeMillis() + 30 * 60 * 1000), secret);
 
             accessLogService.create(createLog(access, "Refreshed Token"));

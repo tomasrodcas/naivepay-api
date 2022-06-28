@@ -113,11 +113,9 @@ public class CustomerService {
     private void buildFromEntity(Customer customer, CustomerEntity customerEntity){
         customer.setCusName(customerEntity.getCusName());
         customer.setCusAddress(customerEntity.getCusAddress());
-        customer.setCusMail(customerEntity.getCusMail());
-        customer.setCusBirthDate(customerEntity.getCusBirthDate());
+        customer.setCusEmail(customerEntity.getCusEmail());
+        customer.setCusBirthdate(customerEntity.getCusBirthdate());
         customer.setCusRut(customerEntity.getCusRut());
-        customer.setCusDevice(customerEntity.getCusDevice());
-        customer.setCusDv(customerEntity.getCusDv());
     }
 
 }

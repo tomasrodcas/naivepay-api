@@ -32,22 +32,18 @@ public class Customer{
     private List<Account> accounts = new ArrayList<>();
     private String cusName;
     private String cusAddress;
-    private String cusMail;
-    private Date cusBirthDate;
-    private char cusDv;
+    private String cusEmail;
+    private Date cusBirthdate;
     private String cusRut;
-    private String cusDevice;
 
     public CustomerEntity toEntity(){
         return new CustomerEntity(
                 this.cusId,
                 this.cusName,
                 this.cusAddress,
-                this.cusMail,
-                this.cusBirthDate,
-                this.cusDv,
+                this.cusEmail,
+                this.cusBirthdate,
                 this.cusRut,
-                this.cusDevice,
                 this.cusAccess.toEntity()
 
                 );
@@ -58,11 +54,9 @@ public class Customer{
                 this.cusId,
                 this.cusName,
                 null,
-                this.cusMail,
+                this.cusEmail,
                 null,
-                this.cusDv,
                 this.cusRut,
-                null,
                 null
 
         );

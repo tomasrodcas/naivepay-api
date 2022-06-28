@@ -3,6 +3,7 @@ package cl.tomas.naivepay.security.jwt;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+import cl.tomas.naivepay.domain.entities.CustomerEntity;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.auth0.jwt.JWT;
@@ -12,11 +13,12 @@ import cl.tomas.naivepay.infrastructure.models.Access;
 
 public class JwtEncoder {
 
-    public String encodeToken(Access access, String issuer, Date expDate, String secret) {
+    public String encodeToken(Access access, CustomerEntity customer, String issuer, Date expDate, String secret) {
         Algorithm algorithm = Algorithm.HMAC256(secret.getBytes());
         return JWT.create()
                 .withSubject(access.getAccName())
-                .withClaim("access_id", access.getAccId())
+                .withClaim("accId", access.getAccId())
+                .withClaim("cusId", customer.getCusId())
                 .withExpiresAt(expDate)
                 .withIssuer(issuer)
                 .withClaim("roles",
@@ -29,7 +31,7 @@ public class JwtEncoder {
         Algorithm algorithm = Algorithm.HMAC256(secret.getBytes());
         return JWT.create()
                 .withSubject(access.getAccName())
-                .withClaim("access_id", access.getAccId())
+                .withClaim("accId", access.getAccId())
                 .withExpiresAt(expDate)
                 .withIssuer(issuer)
                 .sign(algorithm);

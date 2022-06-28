@@ -8,13 +8,15 @@ import com.auth0.jwt.interfaces.JWTVerifier;
 
 import cl.tomas.naivepay.infrastructure.models.Access;
 
+import java.util.Date;
+
 public class JwtDecoder {
 
     public Access decodeAccessToken(String token, String secret) throws JWTVerificationException {
         DecodedJWT decodedJWT = decode(token, secret);
 
         Access access = new Access();
-        access.setAccId((long) decodedJWT.getClaim("access_id").asInt());
+        access.setAccId((long) decodedJWT.getClaim("accId").asInt());
         access.setAccName(decodedJWT.getSubject());
         access.setAccRole(Integer.parseInt(decodedJWT.getClaim("roles").asArray(String.class)[0]));
 
@@ -24,7 +26,7 @@ public class JwtDecoder {
     public Access decodeRefreshToken(String token, String secret) throws JWTVerificationException {
         DecodedJWT decodedJWT = decode(token, secret);
         Access access = new Access();
-        access.setAccId((long) decodedJWT.getClaim("access_id").asInt());
+        access.setAccId((long) decodedJWT.getClaim("accId").asInt());
         access.setAccName(decodedJWT.getSubject());
 
         return access;
@@ -34,6 +36,14 @@ public class JwtDecoder {
         Algorithm algorithm = Algorithm.HMAC256(secret.getBytes());
         JWTVerifier verifier = JWT.require(algorithm).build();
         return verifier.verify(token);
+    }
+
+    public static boolean isExpired(String token){
+        DecodedJWT jwt = JWT.decode(token);
+        if( jwt.getExpiresAt().before(new Date())) {
+            return true;
+        }
+        return false;
     }
 
 }

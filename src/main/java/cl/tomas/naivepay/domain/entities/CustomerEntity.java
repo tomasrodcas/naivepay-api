@@ -15,10 +15,8 @@ public class CustomerEntity implements Serializable {
     private Long cusId;
     private String cusName;
     private String cusAddress;
-    private String cusMail;
-    private Date cusBirthDate;
-    private char cusDv;
+    private String cusEmail;
+    private Date cusBirthdate;
     private String cusRut;
-    private String cusDevice;
     private AccessEntity cusAccess;
 }

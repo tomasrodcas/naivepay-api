@@ -10,6 +10,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import cl.tomas.naivepay.domain.exceptions.ApiExpiredTokenException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -55,6 +57,9 @@ public class AuthorizationFilter extends OncePerRequestFilter {
         }
         try {
             String token = authorizationHeader.substring("Bearer ".length());
+            if(JwtDecoder.isExpired(token)){
+                throw new ApiExpiredTokenException();
+            }
             Access decodedAccess = new JwtDecoder().decodeAccessToken(token, secret);
             Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
             authorities.add(new SimpleGrantedAuthority(Integer.toString(decodedAccess.getAccRole())));
@@ -62,16 +67,23 @@ public class AuthorizationFilter extends OncePerRequestFilter {
                     decodedAccess, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             filterChain.doFilter(request, response);
-        } catch (Exception e) {
+        } catch(ApiExpiredTokenException e){
             log.error("Error Authenticating: {}", e.getMessage());
-
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.setStatus(HttpStatus.FORBIDDEN.value());
-            PrintWriter bodyPrintWriter = response.getWriter();
-            bodyPrintWriter.println("{ Message: " + e.getMessage() + "}");
-            bodyPrintWriter.flush();
+            buildErrorResponse(response, e.getMessage(), 419);
+        }
+        catch (Exception e) {
+            log.error("Error Authenticating: {}", e.getMessage());
+            buildErrorResponse(response, e.getMessage(), HttpStatus.FORBIDDEN.value());
         }
 
+    }
+
+    private void buildErrorResponse(HttpServletResponse response, String message, int statusCode) throws IOException {
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setStatus(statusCode);
+        PrintWriter bodyPrintWriter = response.getWriter();
+        bodyPrintWriter.println("{ Message: " + message + "}");
+        bodyPrintWriter.flush();
     }
 
 }
