@@ -42,8 +42,8 @@ public class TransactionController {
         return ResponseEntity.status(200).body(transactionService.getByAccount(accId));
     }
 
-    @GetMapping("/get-recent/{accId}")
-    public ResponseEntity<List<TransactionEntity>> getRecent(@PathVariable long accId){
-        return ResponseEntity.status(200).body(transactionService.getRecentTransactions(accId));
+    @GetMapping("/get-recent/{accNum}")
+    public ResponseEntity<List<TransactionEntity>> getRecent(@PathVariable long accNum){
+        return ResponseEntity.status(200).body(transactionService.getRecentTransactions(accNum));
     }
 }

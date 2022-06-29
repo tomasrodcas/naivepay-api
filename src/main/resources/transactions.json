@@ -1,8 +1,8 @@
 [
   {"traAccount" : {
-    "accId": 1
+    "accId": 2
   },
-    "traDestinationAccount":  {"accId": 2},
+    "traDestinationAccount":  {"accId": 1},
     "traAmount": 1000,
     "traDescription": "A"
   },
@@ -28,9 +28,9 @@
     "traDescription": "A"
   },
   {"traAccount" : {
-    "accId": 1
+    "accId": 2
   },
-    "traDestinationAccount":  {"accId": 2},
+    "traDestinationAccount":  {"accId": 1},
     "traAmount": 422300,
     "traDescription": "A"
   },
@@ -42,9 +42,9 @@
     "traDescription": "A"
   },
   {"traAccount" :{
-    "accId": 1
+    "accId": 2
   },
-    "traDestinationAccount":  {"accId": 2},
+    "traDestinationAccount":  {"accId": 1},
     "traAmount": 324200,
     "traDescription": "A"
   },
@@ -56,9 +56,9 @@
     "traDescription": "A"
   },
   {"traAccount" : {
-    "accId": 1
+    "accId": 2
   },
-    "traDestinationAccount":  {"accId": 2},
+    "traDestinationAccount":  {"accId": 1},
     "traAmount": 5000,
     "traDescription": "A"
   },
@@ -70,9 +70,9 @@
     "traDescription": "A"
   },
   {"traAccount" : {
-    "accId": 1
+    "accId": 2
   },
-    "traDestinationAccount":  {"accId": 2},
+    "traDestinationAccount":  {"accId": 1},
     "traAmount": 9000,
     "traDescription": "A"
   },

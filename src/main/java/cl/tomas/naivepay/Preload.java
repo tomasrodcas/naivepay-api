@@ -85,8 +85,8 @@ public class Preload {
 			account2.setAccNum( 12451431);
 			account2.setAccCvv(521);
 
-			accountService.createAccount(account1);
-			accountService.createAccount(account2);
+			account1 = accountService.createAccount(account1).toEntity();
+			account2 = accountService.createAccount(account2).toEntity();
 
 			TransactionState state = new TransactionState();
 			state.setTrsName("a");
@@ -98,10 +98,13 @@ public class Preload {
 			for(Transaction transaction : transactions){
 				Date randomDate = new Date(ThreadLocalRandom.current()
 						.nextLong(date1.getTime(), System.currentTimeMillis()));
-				transaction.setTraAccount(accountRepository.findById(1L).orElseThrow());
+				transaction.setTraAccount(accountRepository.findById(transaction.getTraAccount().getAccId()).orElseThrow());
+				transaction.setTraDestinationAccount(accountRepository.findById(transaction.getTraDestinationAccount().getAccId()).orElseThrow());
 				transaction.setTraDate(randomDate);
 				transaction.setTraTransactionState(state);
 				transactionRepository.save(transaction);
+				System.out.println("Origin "+transaction.getTraAccount().getAccNum());
+				System.out.println("Destination "+transaction.getTraDestinationAccount().getAccNum());
 			}
 
 
