@@ -53,8 +53,16 @@ public class AccountController {
 
     @GetMapping("/get-by-customer/{id}")
     public ResponseEntity<List<AccountEntity>> getAccountsByCustomer(@PathVariable long id){
-        return ResponseEntity.status(200).body(service.getByCustomer(id).stream().map(Account::toEntity).
-                collect(Collectors.toList()));
+        return ResponseEntity.status(200).body(service.getByCustomer(id).stream().map((account) -> {
+            AccountEntity entity = account.toEntity();
+            entity.setAccCvv(null);
+            return entity;
+        }).collect(Collectors.toList()));
+    }
+
+    @GetMapping("/get-cvv/{accId}")
+    public ResponseEntity<Integer> getAccountCvv(@PathVariable long accId){
+        return ResponseEntity.status(200).body(service.getAccountCvv(accId));
     }
 
 }

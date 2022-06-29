@@ -151,6 +151,21 @@ public class AccountService {
         }
     }
 
+    public int getAccountCvv(long accId){
+        log.info("Finding Account Cvv " + accId);
+        try {
+            Account account = repository.findById(accId).orElseThrow();
+            return account.getAccCvv();
+        }catch (NoSuchElementException e) {
+            log.error("Account with ID" + accId + " Not Found  " + e.getMessage());
+            throw new ApiRequestException("No Matching Account Found");
+        } catch (Exception e) {
+            log.error("Error searching for cvv | {}", e.getMessage());
+            e.printStackTrace();
+            throw new ApiRequestException("Error searching for cvv");
+        }
+    }
+
     private void buildFromEntity(Account account, AccountEntity entity){
         account.setAccId(entity.getAccId());
         account.setAccAmount(entity.getAccAmount());

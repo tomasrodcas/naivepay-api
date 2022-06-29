@@ -16,9 +16,8 @@ public interface TransactionRepository extends CrudRepository<Transaction,Long>{
 
 
     List<Transaction> findAllByTraDestinationAccount(Account traDestinationAccount);
-
     List<Transaction> findTransactionsByTraAccount(Account account);
     List<Transaction> findTransactionsByTraTransactionState(TransactionState transactionState);
 
-    List<Transaction> findFirst10ByTraAccountOrderByTraDate(Account account);
+    List<Transaction> findFirst10ByTraAccountOrTraDestinationAccountOrderByTraDate(Account account, Account destinationAcc);
 }

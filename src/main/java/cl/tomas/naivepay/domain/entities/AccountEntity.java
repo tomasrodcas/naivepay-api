@@ -19,6 +19,6 @@ public class AccountEntity implements Serializable {
     private CustomerEntity accCustomer;
     private List<TransactionEntity> accTransactions;
     private long accNum;
-    private int accCvv;
+    private Integer accCvv;
     private int accAmount;
 }

@@ -95,7 +95,7 @@ public class TransactionService {
     public List<TransactionEntity> getRecentTransactions(long accNum){
         Account account = accountService.getByAccNum(accNum);
         try{
-            List<Transaction> transactions = transactionRepository.findFirst10ByTraAccountOrderByTraDate(account);
+            List<Transaction> transactions = transactionRepository.findFirst10ByTraAccountOrTraDestinationAccountOrderByTraDate(account, account);
             return transactions.stream().map(Transaction::toEntity).collect(Collectors.toList());
         }catch(Exception e){
             log.error("Error Fetching Recent Transactions for Acc {}", accNum);

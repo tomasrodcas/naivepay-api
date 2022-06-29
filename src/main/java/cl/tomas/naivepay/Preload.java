@@ -78,15 +78,27 @@ public class Preload {
 			account1.setAccNum( 11121431);
 			account1.setAccCvv(341);
 
+			CustomerEntity adminStored = customerRepository.findById(1L).orElseThrow().toEntity();
+
 			AccountEntity account2 = new AccountEntity();
 			account2.setAccId((long)2);
 			account2.setAccAmount(93452);
-			account2.setAccCustomer(customerRepository.findById(1L).orElseThrow().toEntity());
+			account2.setAccCustomer(adminStored);
 			account2.setAccNum( 12451431);
 			account2.setAccCvv(521);
 
+			AccountEntity account3 = new AccountEntity();
+			account3.setAccCustomer(adminStored);
+			AccountEntity account4 = new AccountEntity();
+			account4.setAccCustomer(adminStored);
+			AccountEntity account5 = new AccountEntity();
+			account5.setAccCustomer(adminStored);
+
 			account1 = accountService.createAccount(account1).toEntity();
 			account2 = accountService.createAccount(account2).toEntity();
+			accountService.createAccount(account3);
+			accountService.createAccount(account4);
+			accountService.createAccount(account5);
 
 			TransactionState state = new TransactionState();
 			state.setTrsName("a");
