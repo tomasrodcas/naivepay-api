@@ -22,7 +22,7 @@ public class TransactionController {
         return ResponseEntity.status(200).body(transactionService.deposit(deposit));
     }
 
-    @PutMapping("/transfer")
+    @PostMapping("/transfer")
     public ResponseEntity<TransactionEntity> transfer(@RequestBody TransactionEntity transaction) {
         return ResponseEntity.status(200).body(transactionService.makeTransaction(transaction));
     }

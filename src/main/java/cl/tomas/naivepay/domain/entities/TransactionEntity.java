@@ -22,6 +22,6 @@ public class TransactionEntity implements Serializable {
     private String traDescription;
     private String traState;
     private String traOriginCustomer;
-    private String traDesintationCustomer;
+    private String traDestinationCustomer;
 
 }

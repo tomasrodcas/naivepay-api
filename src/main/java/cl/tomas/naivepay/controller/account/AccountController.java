@@ -1,6 +1,7 @@
 package cl.tomas.naivepay.controller.account;
 
 import cl.tomas.naivepay.domain.entities.AccountEntity;
+import cl.tomas.naivepay.domain.entities.CustomerEntity;
 import cl.tomas.naivepay.infrastructure.models.Account;
 import cl.tomas.naivepay.service.account.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,16 @@ public class AccountController {
     @GetMapping("/get-cvv/{accId}")
     public ResponseEntity<Integer> getAccountCvv(@PathVariable long accId){
         return ResponseEntity.status(200).body(service.getAccountCvv(accId));
+    }
+
+    @GetMapping("/get-holder/{accNum}")
+    public ResponseEntity<CustomerEntity> getAccHolder(@PathVariable long accNum){
+        CustomerEntity customer = service.getHolder(accNum).toEntity();
+        CustomerEntity customerResponse = new CustomerEntity();
+        customerResponse.setCusName(customer.getCusName());
+        customerResponse.setCusEmail(customer.getCusEmail());
+        customerResponse.setCusRut(customer.getCusRut());
+        return ResponseEntity.status(200).body(customerResponse);
     }
 
 }

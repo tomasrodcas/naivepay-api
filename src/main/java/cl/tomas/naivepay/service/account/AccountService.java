@@ -1,6 +1,7 @@
 package cl.tomas.naivepay.service.account;
 
 import cl.tomas.naivepay.domain.entities.AccountEntity;
+import cl.tomas.naivepay.domain.entities.CustomerEntity;
 import cl.tomas.naivepay.domain.exceptions.ApiForbiddenException;
 import cl.tomas.naivepay.domain.exceptions.ApiRequestException;
 import cl.tomas.naivepay.infrastructure.repository.AccountRepository;
@@ -163,6 +164,21 @@ public class AccountService {
             log.error("Error searching for cvv | {}", e.getMessage());
             e.printStackTrace();
             throw new ApiRequestException("Error searching for cvv");
+        }
+    }
+
+    public Customer getHolder(long accNum){
+        log.info("Finding Account Holder " + accNum);
+        try {
+            Account account = repository.findByAccNum(accNum).orElseThrow();
+            return account.getAccCustomer();
+        }catch (NoSuchElementException e) {
+            log.error("Account with Num " + accNum + " Not Found  " + e.getMessage());
+            throw new ApiRequestException("No Matching Account Found");
+        } catch (Exception e) {
+            log.error("Error searching for Account Holder | {}", e.getMessage());
+            e.printStackTrace();
+            throw new ApiRequestException("Error Fetching Account Holder");
         }
     }
 
